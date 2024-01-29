@@ -11,7 +11,10 @@ app.use((req, res, next) => {
     // Attach CORS headers
     // Required when using a detached backend (that runs on a different domain)
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE");
+    res.setHeader(
+        "Access-Control-Allow-Methods",
+        "GET, POST, PUT, PATCH, DELETE"
+    );
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     next();
 });
@@ -39,6 +42,19 @@ app.post("/posts", async (req, res) => {
     const updatedPosts = [newPost, ...existingPosts];
     await storePosts(updatedPosts);
     res.status(201).json({ message: "Stored new post.", post: newPost });
+});
+
+app.put("/posts/:id", async (req, res) => {
+    // console.log(req.params.id, req.body);
+    const storedPosts = await getStoredPosts();
+    const updatedPosts = storedPosts.map((post) => {
+        if (post.id === req.params.id) {
+            return { ...post, ...req.body };
+        }
+        return post;
+    });
+    await storePosts(updatedPosts);
+    res.status(201).json({ message: "Updated post." });
 });
 
 app.delete("/posts/:id", async (req, res) => {
